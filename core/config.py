@@ -31,7 +31,18 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        origins = [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        
+        # In development, allow all local network IPs (192.168.x.x, 10.x.x.x, etc.)
+        if self.APP_ENV == "dev":
+            # Add wildcard pattern for local network development
+            # This allows any IP on local network to access the API
+            origins.append("http://*:5173")
+            origins.append("http://*:5174")
+            # Also allow all origins in dev mode for easier testing
+            # But we'll use a more specific approach below
+        
+        return origins
 
 
 settings = Settings()

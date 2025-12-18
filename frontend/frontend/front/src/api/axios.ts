@@ -1,7 +1,22 @@
 import axios from "axios";
 
+// Detect if running locally or in production
+const getBaseURL = () => {
+  // Check if we're on localhost or local network
+  const hostname = window.location.hostname;
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.');
+  
+  if (isLocal) {
+    // Use local backend when accessed from localhost or local network
+    return "http://localhost:8000/api/v1/";
+  } else {
+    // Use Render production API for deployed frontend
+    return "https://teamup-u17c.onrender.com/api/v1/";
+  }
+};
+
 const api = axios.create({
-  baseURL: "https://teamup-u17c.onrender.com/api/v1/", // Render production API
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },

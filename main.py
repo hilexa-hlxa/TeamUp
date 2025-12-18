@@ -51,14 +51,25 @@ app.add_exception_handler(ValueError, general_exception_handler)  # Handle Value
 app.add_exception_handler(Exception, general_exception_handler)
 
 # CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
+# In development, allow all origins for easier local network testing
+if settings.APP_ENV == "dev":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allow all origins in dev mode
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allow_headers=["*"],
+        expose_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins_list,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allow_headers=["*"],
+        expose_headers=["*"],
+    )
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1")
