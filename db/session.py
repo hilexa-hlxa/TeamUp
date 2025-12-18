@@ -76,13 +76,13 @@ def _init_engine():
         logger.error("sqlite_connection_failed")
         raise RuntimeError("Failed to connect to both PostgreSQL and SQLite")
     
-    # Ensure tables exist for SQLite
+    # Ensure tables exist for SQLite with correct schema
     try:
-        from sqlalchemy import inspect
+        from sqlalchemy import inspect, text
         inspector = inspect(_engine)
         existing_tables = inspector.get_table_names()
         
-        # Check if users table exists (indicator that tables are initialized)
+        # Check if users table exists and has correct schema
         if 'users' not in existing_tables:
             logger.info("creating_tables_from_models_for_sqlite")
             from db.base import Base
@@ -90,6 +90,40 @@ def _init_engine():
             from models import user, project, task, application, membership, hackathon, notification, project_role_requirement, task_comment, hackathon_participant
             Base.metadata.create_all(bind=_engine)
             logger.info("sqlite_tables_created", tables=list(Base.metadata.tables.keys()))
+        else:
+            # Check if schema matches - verify required columns exist
+            try:
+                columns = [col['name'] for col in inspector.get_columns('users')]
+                required_columns = ['id', 'email', 'password_hash', 'name', 'role']
+                missing_columns = [col for col in required_columns if col not in columns]
+                
+                # Check if old column name exists (full_name instead of name)
+                has_old_schema = 'full_name' in columns and 'name' not in columns
+                
+                if missing_columns or has_old_schema:
+                    logger.warning("sqlite_schema_mismatch", missing=missing_columns, has_old_schema=has_old_schema)
+                    logger.info("recreating_tables_with_correct_schema")
+                    
+                    # Drop and recreate tables with correct schema
+                    from db.base import Base
+                    from models import user, project, task, application, membership, hackathon, notification, project_role_requirement, task_comment, hackathon_participant
+                    
+                    # Drop all tables
+                    Base.metadata.drop_all(bind=_engine)
+                    # Recreate with correct schema
+                    Base.metadata.create_all(bind=_engine)
+                    logger.info("sqlite_tables_recreated", tables=list(Base.metadata.tables.keys()))
+            except Exception as schema_check_error:
+                logger.warning("schema_check_failed", error=str(schema_check_error))
+                # If schema check fails, try to recreate tables
+                try:
+                    from db.base import Base
+                    from models import user, project, task, application, membership, hackathon, notification, project_role_requirement, task_comment, hackathon_participant
+                    Base.metadata.drop_all(bind=_engine)
+                    Base.metadata.create_all(bind=_engine)
+                    logger.info("sqlite_tables_recreated_after_check_failure")
+                except Exception as recreate_error:
+                    logger.error("failed_to_recreate_tables", error=str(recreate_error))
     except Exception as e:
         logger.warning("failed_to_create_sqlite_tables", error=str(e))
 
