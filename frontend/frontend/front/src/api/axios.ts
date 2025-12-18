@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000/api/v1/", // Локальный сервер
+  baseURL: "https://teamup-u17c.onrender.com/api/v1/", // Render production API
   headers: {
     "Content-Type": "application/json",
   },
