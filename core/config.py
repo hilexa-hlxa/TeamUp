@@ -4,7 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     APP_ENV: str = "dev"
-    DB_URL: str
+    DB_URL: str = ""
+    DATABASE_URL: str = ""  # Render provides this
     JWT_SECRET: str
     JWT_ALG: str = "HS256"
     ACCESS_TTL_MIN: int = 30
@@ -13,6 +14,14 @@ class Settings(BaseSettings):
 
     # pydantic v2 settings config
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Convert Render's postgresql:// to postgresql+psycopg://
+        if not self.DB_URL and self.DATABASE_URL:
+            self.DB_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
+        elif self.DB_URL and self.DB_URL.startswith("postgresql://") and "+psycopg" not in self.DB_URL:
+            self.DB_URL = self.DB_URL.replace("postgresql://", "postgresql+psycopg://")
 
     @property
     def cors_origins_list(self) -> List[str]:

@@ -5,7 +5,7 @@ services:
     region: oregon
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: chmod +x start.sh && ./start.sh
     envVars:
       - key: APP_ENV
         value: production
@@ -19,7 +19,7 @@ services:
         value: 7
       - key: CORS_ORIGINS
         value: https://your-frontend-domain.onrender.com,http://localhost:5173
-      - key: DB_URL
+      - key: DATABASE_URL
         fromDatabase:
           name: teamup-db
           property: connectionString
