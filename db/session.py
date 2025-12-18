@@ -124,29 +124,6 @@ def _try_reconnect_postgres():
 # Initialize on import
 _init_engine()
 
-# Ensure tables exist for SQLite
-def _ensure_tables_exist():
-    """Create tables if they don't exist (for SQLite fallback)"""
-    global _engine, _using_sqlite
-    
-    if _using_sqlite and _engine:
-        try:
-            from sqlalchemy import inspect, text
-            inspector = inspect(_engine)
-            existing_tables = inspector.get_table_names()
-            
-            # Check if users table exists
-            if 'users' not in existing_tables:
-                logger.info("creating_tables_from_models")
-                from db.base import Base
-                Base.metadata.create_all(bind=_engine)
-                logger.info("tables_created_successfully", tables=list(Base.metadata.tables.keys()))
-        except Exception as e:
-            logger.error("failed_to_create_tables", error=str(e))
-
-# Ensure tables exist after engine initialization
-_ensure_tables_exist()
-
 
 def get_db():
     """Get database session with automatic fallback handling"""
