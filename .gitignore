@@ -89,4 +89,8 @@ SEED_INSTRUCTIONS.md
 
 # Shell scripts (if not needed)
 run-*.sh
-start-*.shfrontend/.vite/
+start-*.sh
+
+# Frontend build cache
+frontend/.vite/
+**/.vite/
