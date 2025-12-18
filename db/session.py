@@ -75,6 +75,23 @@ def _init_engine():
     if not _test_connection(_engine):
         logger.error("sqlite_connection_failed")
         raise RuntimeError("Failed to connect to both PostgreSQL and SQLite")
+    
+    # Ensure tables exist for SQLite
+    try:
+        from sqlalchemy import inspect
+        inspector = inspect(_engine)
+        existing_tables = inspector.get_table_names()
+        
+        # Check if users table exists (indicator that tables are initialized)
+        if 'users' not in existing_tables:
+            logger.info("creating_tables_from_models_for_sqlite")
+            from db.base import Base
+            # Import all models to register them
+            from models import user, project, task, application, membership, hackathon, notification, project_role_requirement, task_comment, hackathon_participant
+            Base.metadata.create_all(bind=_engine)
+            logger.info("sqlite_tables_created", tables=list(Base.metadata.tables.keys()))
+    except Exception as e:
+        logger.warning("failed_to_create_sqlite_tables", error=str(e))
 
 
 def _try_reconnect_postgres():
@@ -106,6 +123,29 @@ def _try_reconnect_postgres():
 
 # Initialize on import
 _init_engine()
+
+# Ensure tables exist for SQLite
+def _ensure_tables_exist():
+    """Create tables if they don't exist (for SQLite fallback)"""
+    global _engine, _using_sqlite
+    
+    if _using_sqlite and _engine:
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(_engine)
+            existing_tables = inspector.get_table_names()
+            
+            # Check if users table exists
+            if 'users' not in existing_tables:
+                logger.info("creating_tables_from_models")
+                from db.base import Base
+                Base.metadata.create_all(bind=_engine)
+                logger.info("tables_created_successfully", tables=list(Base.metadata.tables.keys()))
+        except Exception as e:
+            logger.error("failed_to_create_tables", error=str(e))
+
+# Ensure tables exist after engine initialization
+_ensure_tables_exist()
 
 
 def get_db():
