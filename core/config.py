@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "dev"
     DB_URL: str = ""
     DATABASE_URL: str = ""  # Render provides this
+    SQLITE_DB_PATH: str = "teamup_backup.db"  # SQLite fallback database
     JWT_SECRET: str
     JWT_ALG: str = "HS256"
     ACCESS_TTL_MIN: int = 30
@@ -22,6 +23,11 @@ class Settings(BaseSettings):
             self.DB_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
         elif self.DB_URL and self.DB_URL.startswith("postgresql://") and "+psycopg" not in self.DB_URL:
             self.DB_URL = self.DB_URL.replace("postgresql://", "postgresql+psycopg://")
+    
+    @property
+    def sqlite_url(self) -> str:
+        """Get SQLite database URL"""
+        return f"sqlite:///{self.SQLITE_DB_PATH}"
 
     @property
     def cors_origins_list(self) -> List[str]:

@@ -43,6 +43,10 @@ htmlcov/
 # Database
 *.db
 *.sqlite3
+teamup_backup.db
+*.db-journal
+*.db-wal
+*.db-shm
 
 # Logs
 *.log
@@ -85,4 +89,4 @@ SEED_INSTRUCTIONS.md
 
 # Shell scripts (if not needed)
 run-*.sh
-start-*.sh
+start-*.shfrontend/.vite/

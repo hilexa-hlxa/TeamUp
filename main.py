@@ -77,7 +77,27 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    from db.session import is_using_sqlite, get_engine
+    from sqlalchemy import text
+    
+    db_type = "sqlite" if is_using_sqlite() else "postgresql"
+    
+    # Test database connection
+    try:
+        engine = get_engine()
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
+    return {
+        "status": "healthy",
+        "database": {
+            "type": db_type,
+            "status": db_status
+        }
+    }
 
 @app.websocket("/ws/notifications/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):

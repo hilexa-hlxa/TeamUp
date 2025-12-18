@@ -14,7 +14,28 @@ target_metadata = Base.metadata
 from core.config import settings
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.DB_URL)
+
+# Determine which database to use for migrations
+# Try PostgreSQL first, fallback to SQLite
+db_url = None
+
+# Try to use PostgreSQL if available
+if settings.DB_URL and settings.DB_URL.startswith(("postgresql", "postgres")):
+    # Test PostgreSQL connection
+    try:
+        from sqlalchemy import create_engine, text
+        test_engine = create_engine(settings.DB_URL, connect_args={"connect_timeout": 5})
+        with test_engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_url = settings.DB_URL
+    except Exception:
+        # PostgreSQL failed, use SQLite
+        db_url = settings.sqlite_url
+else:
+    # No PostgreSQL URL, use SQLite
+    db_url = settings.sqlite_url
+
+config.set_main_option("sqlalchemy.url", db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
