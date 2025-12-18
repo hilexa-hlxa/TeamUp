@@ -68,3 +68,21 @@ out/
 # Frontend build artifacts
 *.zip
 frontend.zip
+
+# Test files
+test_*.py
+*_test.py
+
+# Documentation (optional - keep README.md)
+QUICK_FIX.md
+FRONTEND_DOCKER*.md
+SEED_INSTRUCTIONS.md
+
+# IDE/Editor files
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# Shell scripts (if not needed)
+run-*.sh
+start-*.sh
