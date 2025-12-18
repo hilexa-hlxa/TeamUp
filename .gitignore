@@ -50,3 +50,21 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+__MACOSX/
+**/__MACOSX/
+
+# Node.js / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+.next/
+out/
+.cache/
+
+# Frontend build artifacts
+*.zip
+frontend.zip
