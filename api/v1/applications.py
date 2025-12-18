@@ -18,7 +18,50 @@ def create_application(
         db: Session = Depends(get_db)
 ):
     # All roles can create applications (advertising themselves)
-    return ApplicationService.create(db, app_data, current_user.id)
+    application = ApplicationService.create(db, app_data, current_user.id)
+    
+    # Convert to response format
+    result = {
+        "id": application.id,
+        "type": application.type,
+        "target_id": application.target_id,
+        "applicant_id": application.applicant_id,
+        "message": application.message,
+        "status": application.status,
+        "created_at": application.created_at,
+        "updated_at": application.updated_at,
+    }
+    
+    # Load applicant data if available
+    if application.applicant:
+        result["applicant"] = {
+            "id": application.applicant.id,
+            "name": application.applicant.name,
+            "email": application.applicant.email,
+            "role": application.applicant.role,
+            "skills": application.applicant.skills or [],
+            "avatar_url": application.applicant.avatar_url,
+        }
+    
+    # Load project/hackathon data if available
+    if application.type == "project":
+        project = db.query(Project).filter(Project.id == application.target_id).first()
+        if project:
+            result["project"] = {
+                "id": project.id,
+                "title": project.title,
+                "created_by": project.created_by,
+            }
+    elif application.type == "hackathon":
+        from models.hackathon import Hackathon
+        hackathon = db.query(Hackathon).filter(Hackathon.id == application.target_id).first()
+        if hackathon:
+            result["hackathon"] = {
+                "id": hackathon.id,
+                "title": hackathon.title,
+            }
+    
+    return result
 
 
 @router.get("", response_model=List[ApplicationResponse])
@@ -77,7 +120,7 @@ def list_applications(
                 "email": app.applicant.email,
                 "role": app.applicant.role,
                 "skills": app.applicant.skills or [],
-                "avatar": app.applicant.avatar,
+                "avatar_url": app.applicant.avatar_url,
             }
         
         # Load project/hackathon data
@@ -126,7 +169,50 @@ def approve_application(
         if not hackathon or hackathon.created_by != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized")
 
-    return ApplicationService.approve(db, application_id, background_tasks)
+    application = ApplicationService.approve(db, application_id, background_tasks)
+    
+    # Convert to response format
+    result = {
+        "id": application.id,
+        "type": application.type,
+        "target_id": application.target_id,
+        "applicant_id": application.applicant_id,
+        "message": application.message,
+        "status": application.status,
+        "created_at": application.created_at,
+        "updated_at": application.updated_at,
+    }
+    
+    # Load applicant data if available
+    if application.applicant:
+        result["applicant"] = {
+            "id": application.applicant.id,
+            "name": application.applicant.name,
+            "email": application.applicant.email,
+            "role": application.applicant.role,
+            "skills": application.applicant.skills or [],
+            "avatar_url": application.applicant.avatar_url,
+        }
+    
+    # Load project/hackathon data if available
+    if application.type == "project":
+        project = db.query(Project).filter(Project.id == application.target_id).first()
+        if project:
+            result["project"] = {
+                "id": project.id,
+                "title": project.title,
+                "created_by": project.created_by,
+            }
+    elif application.type == "hackathon":
+        from models.hackathon import Hackathon
+        hackathon = db.query(Hackathon).filter(Hackathon.id == application.target_id).first()
+        if hackathon:
+            result["hackathon"] = {
+                "id": hackathon.id,
+                "title": hackathon.title,
+            }
+    
+    return result
 
 
 @router.post("/{application_id}/reject", response_model=ApplicationResponse)
@@ -151,4 +237,47 @@ def reject_application(
         if not hackathon or hackathon.created_by != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized")
 
-    return ApplicationService.reject(db, application_id)
+    application = ApplicationService.reject(db, application_id)
+    
+    # Convert to response format
+    result = {
+        "id": application.id,
+        "type": application.type,
+        "target_id": application.target_id,
+        "applicant_id": application.applicant_id,
+        "message": application.message,
+        "status": application.status,
+        "created_at": application.created_at,
+        "updated_at": application.updated_at,
+    }
+    
+    # Load applicant data if available
+    if application.applicant:
+        result["applicant"] = {
+            "id": application.applicant.id,
+            "name": application.applicant.name,
+            "email": application.applicant.email,
+            "role": application.applicant.role,
+            "skills": application.applicant.skills or [],
+            "avatar_url": application.applicant.avatar_url,
+        }
+    
+    # Load project/hackathon data if available
+    if application.type == "project":
+        project = db.query(Project).filter(Project.id == application.target_id).first()
+        if project:
+            result["project"] = {
+                "id": project.id,
+                "title": project.title,
+                "created_by": project.created_by,
+            }
+    elif application.type == "hackathon":
+        from models.hackathon import Hackathon
+        hackathon = db.query(Hackathon).filter(Hackathon.id == application.target_id).first()
+        if hackathon:
+            result["hackathon"] = {
+                "id": hackathon.id,
+                "title": hackathon.title,
+            }
+    
+    return result
