@@ -3,11 +3,30 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import Integer, String, DateTime, Boolean, func, text
+from sqlalchemy import Integer, String, DateTime, Boolean, func, text, JSON
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
 
 from db.base import Base
+
+def _get_array_type():
+    """Get appropriate array type based on database"""
+    try:
+        from core.config import settings
+        from sqlalchemy import create_engine, text
+        
+        if settings.DB_URL and settings.DB_URL.startswith(("postgresql", "postgres")):
+            try:
+                engine = create_engine(settings.DB_URL, connect_args={"connect_timeout": 2})
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                return PG_ARRAY(String(64))
+            except:
+                return JSON()
+        else:
+            return JSON()
+    except:
+        return JSON()
 
 class User(Base):
     __tablename__ = "users"
@@ -26,7 +45,7 @@ class User(Base):
     avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     # Postgres ARRAY, Python-side default is a callable so you don’t share the same list
-    skills: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String(64)), default=list)
+    skills: Mapped[Optional[List[str]]] = mapped_column(_get_array_type(), default=list)
 
     bio: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 

@@ -3,7 +3,10 @@ set -e
 
 # Run migrations
 echo "Running database migrations..."
-alembic upgrade head || echo "Migration failed, continuing..."
+if ! alembic upgrade head 2>/dev/null; then
+    echo "Migrations failed, initializing database from models..."
+    python3 init_sqlite_db.py || echo "Database initialization failed, continuing..."
+fi
 
 # Start the server
 echo "Starting server on port ${PORT:-8000}..."
