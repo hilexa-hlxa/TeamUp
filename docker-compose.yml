@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: teamup
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=dev
+      - DB_URL=postgresql+psycopg://postgres:postgres@db:5432/teamup
+      - JWT_SECRET=dev-secret-key
+      - JWT_ALG=HS256
+      - ACCESS_TTL_MIN=30
+      - REFRESH_TTL_DAYS=7
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:5174
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend/frontend/front
+      dockerfile: Dockerfile
+    ports:
+      - "5174:5174"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend/frontend/front:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:

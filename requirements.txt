@@ -1,0 +1,29 @@
+# --- Core web stack (FastAPI app) ---
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+
+# --- ORM & migrations ---
+SQLAlchemy==2.0.44
+alembic==1.17.1
+
+# --- Postgres drivers (BOTH, so no DSN/code changes needed) ---
+# Your code can use either:
+#   postgresql+psycopg://...   or   postgresql+psycopg2://...
+psycopg[binary]==3.2.12
+psycopg2-binary==2.9.11
+
+# --- Validation / settings / auth ---
+pydantic==2.11.7
+pydantic-settings==2.11.0
+email-validator==2.3.0
+passlib[bcrypt]==1.7.4
+python-jose==3.5.0
+python-dotenv==1.2.1
+bcrypt==4.0.1
+
+# --- Useful/common but harmless ---
+requests==2.32.5
+python-multipart==0.0.12   # if any file/form endpoints exist
+
+# --- Logging ---
+structlog==24.1.0
